@@ -7,6 +7,6 @@ export class TagService {
 
 
     findAll(): string[]{
-        return ['dragons', 'coffee','weather'];
+        return ['dragons', 'coffee','weather', 'pokemons'];
     }
 }
