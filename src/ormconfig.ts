@@ -9,7 +9,7 @@ const config: ConnectionOptions = {
     database: 'nestjsdb',
     entities: [__dirname + '/**/*.entity{.ts,.js}'],
     synchronize: false,
-    migrations:[__dirname + '/migrations/**/*.entity{.ts,.js}'],
+    migrations:[__dirname + '/migrations/**/*{.ts,.js}'],
 }
 
 export default config;
