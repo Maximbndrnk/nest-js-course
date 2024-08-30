@@ -8,7 +8,8 @@ const config: ConnectionOptions = {
     password: '123456',
     database: 'nestjsdb',
     entities: [__dirname + '/**/*.entity{.ts,.js}'],
-    synchronize: true,
+    synchronize: false,
+    migrations:[__dirname + '/migrations/**/*.entity{.ts,.js}'],
 }
 
 export default config;
