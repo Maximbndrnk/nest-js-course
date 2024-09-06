@@ -6,6 +6,8 @@ import { Repository } from 'typeorm';
 import { sign } from 'jsonwebtoken';
 import { JWT_SECRET } from '@app/config';
 import { UserResponseInterface } from '@app/user/types/user-response.model';
+import { LoginUserDto } from '@app/user/dto/loginUser.dto';
+import { compare } from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -16,19 +18,36 @@ export class UserService {
 
     async createUser(createUserDTO: CreateUserDto): Promise<UserEntity> {
         const userByEmail = await this.userRepository.findOne({
-            where: {email: createUserDTO.email}
+            where: { email: createUserDTO.email }
         });
         const userByName = await this.userRepository.findOne({
-            where: {username: createUserDTO.username}
+            where: { username: createUserDTO.username }
         });
-        if (userByEmail || userByName){
+        if (userByEmail || userByName) {
             throw new HttpException('Email or username are taken', HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
         const newUser = new UserEntity();
         Object.assign(newUser, createUserDTO);
-        console.log('NU', newUser);
         return await this.userRepository.save(newUser);
+    }
+
+    async loginUser(loginUserDto: LoginUserDto): Promise<UserEntity> {
+        const user = await this.userRepository.findOne({
+            where: { email: loginUserDto.email },
+            select: ['id', 'email', 'password', 'image', 'username', 'bio']
+        },);
+        if (!user) {
+            throw new HttpException('Wrong login data', HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        const isPasswordCorrect = await compare(loginUserDto.password, user.password);
+
+        if (!isPasswordCorrect) {
+            throw new HttpException('Incorrect password', HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        delete user.password;
+        return user;
     }
 
     buildUserResponse(user: UserEntity): UserResponseInterface {
