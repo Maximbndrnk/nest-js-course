@@ -12,6 +12,7 @@ export class AuthMiddleware implements NestMiddleware {
     ) {
     }
 
+    // ONLY ONE next(); has to be called in this func
     async use(
         req: ExpressRequestInterface,
         res: Response,
@@ -29,14 +30,11 @@ export class AuthMiddleware implements NestMiddleware {
             const decode = verify(token, JWT_SECRET);
             const user = await this.userService.findById(decode?.id);
             req.user = user;
-            console.log('decode', decode);
             next();
         } catch (e) {
             req.user = null;
             next();
         }
-        console.log('middleware', token)
-        // next();
     }
 
 }
