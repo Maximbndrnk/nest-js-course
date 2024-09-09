@@ -1,4 +1,5 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { UserEntity } from '@app/user/user.entity';
 
 @Entity({ name: 'articles' })
 export class ArticleEntity {
@@ -24,13 +25,14 @@ export class ArticleEntity {
     @Column({ default: () => 'CURRENT_TIMESTAMP', type: 'timestamp' })
     updatedAt: Date;
 
-    @Column('simple-array')
+    @Column({ type: 'simple-array', default: [] })
     tagList: string[];
-
 
     @Column({ default: 0 })
     favoritesCount: number;
 
+    @ManyToOne(() => UserEntity, (user) => user.articles)
+    author: UserEntity;
 
     @BeforeUpdate()
     updateTimestamp() {
