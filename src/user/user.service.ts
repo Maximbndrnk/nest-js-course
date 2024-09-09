@@ -51,6 +51,13 @@ export class UserService {
         return user;
     }
 
+    async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
+        const user = await this.findById(id);
+        Object.assign(user, updateUserDto);
+        // await this.userRepository.update({ id }, updateUserDto);
+        return await this.userRepository.save(user);
+    }
+
     async findById(id: number): Promise<UserEntity> {
         return this.userRepository.findOne({
             where: { id },
@@ -72,12 +79,7 @@ export class UserService {
                 username: u.username,
                 email: u.email
             },
-            JWT_SECRET)
-            ;
+            JWT_SECRET);
     }
 
-    async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
-        await this.userRepository.update({ id }, updateUserDto);
-        return this.findById(id);
-    }
 }

@@ -4,4 +4,4 @@ export interface UserResponseInterface {
     user: UserType & { token: string };
 }
 
-export type UserType = Omit<UserEntity, 'hashPassword'>
+export type UserType = Omit<UserEntity, 'hashPassword' | 'updateHashPassword'>

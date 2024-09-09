@@ -1,4 +1,4 @@
-import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { hash } from 'bcrypt';
 
 @Entity({ name: 'users' })
@@ -26,4 +26,12 @@ export class UserEntity {
     async hashPassword() {
         this.password = await hash(this.password, 10)
     }
+
+    @BeforeUpdate()
+    async updateHashPassword() { // when do update, not save, this method not calls at all
+        if (this.password) {
+            this.password = await hash(this.password, 10);
+        }
+    }
+
 }
