@@ -46,12 +46,12 @@ export class ArticleService {
     }
 
     async deleteArticle(slug: string, currentUserId: number): Promise<DeleteResult> {
-        const article = this.getBySlug(slug);
+        const article = await this.getBySlug(slug);
         if (!article){
             throw new HttpException('Article does not exists', HttpStatus.NOT_FOUND);
         }
 
-        if ((await article).author.id != currentUserId){
+        if (article.author.id != currentUserId){
             throw new HttpException('U are not an author', HttpStatus.FORBIDDEN);
         }
 
