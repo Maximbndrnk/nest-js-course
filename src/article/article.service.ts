@@ -32,10 +32,21 @@ export class ArticleService {
         }
     }
 
+    async getBySlug(slug: string): Promise<ArticleEntity> {
+        const article = this.articleRepository.findOne(
+            { where: { slug } }
+        )
+        return article;
+    }
+
     private getSlug(title: string): string {
         return (
             slugify(title, { lower: true }) + '-' +
             (((Math.random() * Math.pow(36, 5))) | 0).toString(36)
         )
+    }
+
+    async deleteArticle(slug: string, currentUserId: number) {
+        return undefined;
     }
 }
