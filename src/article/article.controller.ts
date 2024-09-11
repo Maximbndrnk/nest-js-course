@@ -1,10 +1,23 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Post,
+    Put,
+    Query,
+    UseGuards,
+    UsePipes,
+    ValidationPipe
+} from '@nestjs/common';
 import { ArticleService } from '@app/article/article.service';
 import { CreateArticleDto } from '@app/article/dto/createArticle.dto';
 import { AuthGuard } from '@app/user/guards/auth.guard';
 import { UserDecorator } from '@app/user/decorators/user.decorator';
 import { UserEntity } from '@app/user/user.entity';
 import { ArticleResponseInterface } from '@app/article/types/article-response.model';
+import { UpdateArticleDto } from '@app/article/dto/updateArticle.dto';
 
 @Controller('articles')
 export class ArticleController {
@@ -16,6 +29,7 @@ export class ArticleController {
 
     @Post()
     @UseGuards(AuthGuard, AuthGuard)
+    @UsePipes(new ValidationPipe())
     async create(
         @UserDecorator() currentUser: UserEntity,
         @Body('article') article: CreateArticleDto
@@ -34,6 +48,18 @@ export class ArticleController {
         return this.articleService.buildArticleResponse(a);
     }
 
+    @Put(':slug')
+    @UseGuards(AuthGuard)
+    @UsePipes(new ValidationPipe())
+    async updateArticle(
+        @Body('article') article: UpdateArticleDto,
+        @Param('slug') slug: string,
+        @UserDecorator('id') currentUserId: number,
+    ): Promise<ArticleResponseInterface> {
+        const a = await this.articleService.updateArticle(article, slug, currentUserId);
+        return this.articleService.buildArticleResponse(a);
+    }
+
     @Get(':slug')
     @UseGuards(AuthGuard)
     async getBySlugV2(
@@ -49,6 +75,6 @@ export class ArticleController {
         @Param('slug') slug: string,
         @UserDecorator('id') currentUserId: number,
     ) {
-      return await this.articleService.deleteArticle(slug, currentUserId);
+        return await this.articleService.deleteArticle(slug, currentUserId);
     }
 }

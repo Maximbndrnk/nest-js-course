@@ -1,4 +1,13 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    BeforeInsert,
+    BeforeUpdate,
+    Column,
+    Entity,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn
+} from 'typeorm';
 import { UserEntity } from '@app/user/user.entity';
 
 @Entity({ name: 'articles' })
@@ -23,6 +32,7 @@ export class ArticleEntity {
     createdAt: Date;
 
     @Column({ default: () => 'CURRENT_TIMESTAMP', type: 'timestamp' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
     @Column({ type: 'simple-array', default: [] })
