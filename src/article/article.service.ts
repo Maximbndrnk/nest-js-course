@@ -41,6 +41,22 @@ export class ArticleService {
             })
         }
 
+        if (query?.favorited) {
+            const author = await this.userRepository.findOne({
+                where: { username: query?.favorited },
+                relations: ['favorites']
+            });
+            console.log('author', author);
+            const ids = author.favorites.map(i => i.id);
+            if (ids.length) {
+                queryBuilder.andWhere('articles.id IN (:...ids)', {
+                    ids
+                })
+            } else {
+                queryBuilder.andWhere('1=0');
+            }
+        }
+
         if (query?.limit) {
             queryBuilder.limit(query?.limit);
         }
@@ -48,10 +64,22 @@ export class ArticleService {
             queryBuilder.offset(query?.offset);
         }
 
+        let favoritesIds: number[] = [];
+        if (currentUserId) {
+            const author = await this.userRepository.findOne({
+                where: { id: currentUserId },
+                relations: ['favorites']
+            });
+            favoritesIds = author.favorites.map(f => f.id);
+        }
+
         const articles = await queryBuilder.getMany();
+        const articlesWithFavorites = articles.map(a => {
+            const favorited = favoritesIds.includes(a.id);
+            return { ...a, favorited };
+        })
 
-
-        return { articles, articlesCount };
+        return { articles: articlesWithFavorites, articlesCount };
     }
 
     async createArticle(
@@ -130,13 +158,6 @@ export class ArticleService {
         return article;
     }
 
-    private getSlug(title: string): string {
-        return (
-            slugify(title, { lower: true }) + '-' +
-            (((Math.random() * Math.pow(36, 5))) | 0).toString(36)
-        )
-    }
-
     async deleteArticleFromFavorites(slug: string, currentUserId: number): Promise<ArticleEntity> {
         const article = await this.getBySlug(slug);
         const user = await this.userRepository.findOne({
@@ -146,13 +167,20 @@ export class ArticleService {
 
         const articleIndex = user.favorites.findIndex((a: ArticleEntity) => a.id === article.id);
 
-        if (articleIndex>=0){
-            user.favorites.splice(articleIndex,1);
+        if (articleIndex >= 0) {
+            user.favorites.splice(articleIndex, 1);
             article.favoritesCount--;
             await this.userRepository.save(user);
             await this.articleRepository.save(article);
         }
 
         return article;
+    }
+
+    private getSlug(title: string): string {
+        return (
+            slugify(title, { lower: true }) + '-' +
+            (((Math.random() * Math.pow(36, 5))) | 0).toString(36)
+        )
     }
 }
