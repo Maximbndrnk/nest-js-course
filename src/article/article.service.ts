@@ -2,9 +2,9 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UserEntity } from '@app/user/user.entity';
 import { CreateArticleDto } from '@app/article/dto/createArticle.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Repository } from 'typeorm';
+import { DataSource, DeleteResult, Repository } from 'typeorm';
 import { ArticleEntity } from '@app/article/article.entity';
-import { ArticleResponseInterface } from '@app/article/types/article-response.model';
+import { ArticleResponseInterface, ArticlesResponseInterface } from '@app/article/types/article-response.model';
 import slugify from 'slugify';
 import { UpdateArticleDto } from '@app/article/dto/updateArticle.dto';
 
@@ -12,7 +12,46 @@ import { UpdateArticleDto } from '@app/article/dto/updateArticle.dto';
 export class ArticleService {
     constructor(
         @InjectRepository(ArticleEntity) private readonly articleRepository: Repository<ArticleEntity>,
+        @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
+        private dataSource: DataSource,
     ) {
+    }
+
+    async findAll(currentUserId: number, query: any): Promise<ArticlesResponseInterface> {
+        const queryBuilder = this.dataSource.getRepository(ArticleEntity)
+            .createQueryBuilder('articles')
+            .leftJoinAndSelect('articles.author', 'author');
+
+        queryBuilder.orderBy('articles.createdAt', 'DESC');
+        // important to put it at the very top - to know how many records in database
+        const articlesCount = await queryBuilder.getCount();
+
+        if (query?.tag) {
+            queryBuilder.andWhere('articles.tagList LIKE :tag', {
+                tag: `%${query.tag}%`
+            })
+        }
+
+        if (query?.author) {
+            const author = await this.userRepository.findOne({
+                where: { username: query?.author }
+            });
+            queryBuilder.andWhere('articles.authorId = :id', {
+                id: author.id
+            })
+        }
+
+        if (query?.limit) {
+            queryBuilder.limit(query?.limit);
+        }
+        if (query?.offset) {
+            queryBuilder.offset(query?.offset);
+        }
+
+        const articles = await queryBuilder.getMany();
+
+
+        return { articles, articlesCount };
     }
 
     async createArticle(
@@ -39,24 +78,17 @@ export class ArticleService {
         );
     }
 
-    private getSlug(title: string): string {
-        return (
-            slugify(title, { lower: true }) + '-' +
-            (((Math.random() * Math.pow(36, 5))) | 0).toString(36)
-        )
-    }
-
     async deleteArticle(slug: string, currentUserId: number): Promise<DeleteResult> {
         const article = await this.getBySlug(slug);
-        if (!article){
+        if (!article) {
             throw new HttpException('Article does not exists', HttpStatus.NOT_FOUND);
         }
 
-        if (article.author.id != currentUserId){
+        if (article.author.id != currentUserId) {
             throw new HttpException('U are not an author', HttpStatus.FORBIDDEN);
         }
 
-        return await this.articleRepository.delete({slug});
+        return await this.articleRepository.delete({ slug });
     }
 
     async updateArticle(
@@ -65,11 +97,11 @@ export class ArticleService {
         currentUserId: number
     ): Promise<ArticleEntity> {
         const article = await this.getBySlug(slug);
-        if (!article){
+        if (!article) {
             throw new HttpException('Article does not exists', HttpStatus.NOT_FOUND);
         }
 
-        if (article.author.id != currentUserId){
+        if (article.author.id != currentUserId) {
             throw new HttpException('U are not an author', HttpStatus.FORBIDDEN);
         }
 
@@ -79,4 +111,12 @@ export class ArticleService {
         console.log('art', article);
         return await this.articleRepository.save(article);
     }
+
+    private getSlug(title: string): string {
+        return (
+            slugify(title, { lower: true }) + '-' +
+            (((Math.random() * Math.pow(36, 5))) | 0).toString(36)
+        )
+    }
+
 }

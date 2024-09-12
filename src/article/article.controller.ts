@@ -16,7 +16,7 @@ import { CreateArticleDto } from '@app/article/dto/createArticle.dto';
 import { AuthGuard } from '@app/user/guards/auth.guard';
 import { UserDecorator } from '@app/user/decorators/user.decorator';
 import { UserEntity } from '@app/user/user.entity';
-import { ArticleResponseInterface } from '@app/article/types/article-response.model';
+import { ArticleResponseInterface, ArticlesResponseInterface } from '@app/article/types/article-response.model';
 import { UpdateArticleDto } from '@app/article/dto/updateArticle.dto';
 
 @Controller('articles')
@@ -25,6 +25,15 @@ export class ArticleController {
     constructor(
         private readonly articleService: ArticleService
     ) {
+    }
+
+    @Get()
+    @UseGuards(AuthGuard)
+    async findAll(
+        @UserDecorator('id') currentUserId: number,
+        @Query() query: any,
+    ):Promise<ArticlesResponseInterface>{
+        return await this.articleService.findAll(currentUserId, query);
     }
 
     @Post()
