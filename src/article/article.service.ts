@@ -108,8 +108,26 @@ export class ArticleService {
         Object.assign(article, articleDto);
         article.slug = this.getSlug(article.title);
 
-        console.log('art', article);
         return await this.articleRepository.save(article);
+    }
+
+    async addArticleToFavorites(slug: string, currentUserId: number): Promise<ArticleEntity> {
+        const article = await this.getBySlug(slug);
+        const user = await this.userRepository.findOne({
+            where: { id: currentUserId },
+            relations: ['favorites']
+        });
+
+        const isNotFavorite = user.favorites.findIndex((a: ArticleEntity) => a.id === article.id) === -1;
+
+        if (isNotFavorite) {
+            user.favorites.push(article);
+            article.favoritesCount++;
+            await this.userRepository.save(user);
+            await this.articleRepository.save(article);
+        }
+
+        return article;
     }
 
     private getSlug(title: string): string {
@@ -118,5 +136,4 @@ export class ArticleService {
             (((Math.random() * Math.pow(36, 5))) | 0).toString(36)
         )
     }
-
 }
