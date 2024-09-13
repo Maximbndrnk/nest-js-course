@@ -22,8 +22,11 @@ export class ProfileService {
         if (!user) {
             throw new HttpException('Profile does not exists', HttpStatus.NOT_FOUND);
         }
+        const follow = await this.followRepository.findOne({
+            where: { followerId: currentUserId, followingId: user.id }
+        });
 
-        return { ...user, following: false };
+        return { ...user, following: Boolean(follow) };
     }
 
     buildProfileResponse(profile: ProfileType): ProfileResponseInterface {
@@ -47,7 +50,7 @@ export class ProfileService {
         const follow = await this.followRepository.findOne({
             where: { followerId: currentUserId, followingId: user.id }
         });
-        if (!follow){
+        if (!follow) {
             const followToCreate = new FollowEntity();
             followToCreate.followerId = currentUserId;
             followToCreate.followingId = user.id;
