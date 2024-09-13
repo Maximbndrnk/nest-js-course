@@ -4,11 +4,13 @@ import { Repository } from 'typeorm';
 import { UserEntity } from '@app/user/user.entity';
 import { ProfileResponseInterface } from '@app/profile/types/profileResponse.interface';
 import { ProfileType } from '@app/profile/types/profile.type';
+import { FollowEntity } from '@app/profile/follow.entity';
 
 @Injectable()
 export class ProfileService {
     constructor(
         @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
+        @InjectRepository(FollowEntity) private readonly followRepository: Repository<FollowEntity>,
     ) {
     }
 
@@ -29,5 +31,30 @@ export class ProfileService {
         return {
             profile
         }
+    }
+
+    async followProfile(currentUserId: number, username: string): Promise<ProfileType> {
+        const user = await this.userRepository.findOne({
+            where: { username }
+        })
+        if (!user) {
+            throw new HttpException('Profile does not exists', HttpStatus.NOT_FOUND);
+        }
+        if (currentUserId == user.id) {
+            throw new HttpException('You cant follow this user', HttpStatus.BAD_REQUEST)
+        }
+
+        const follow = await this.followRepository.findOne({
+            where: { followerId: currentUserId, followingId: user.id }
+        });
+        if (!follow){
+            const followToCreate = new FollowEntity();
+            followToCreate.followerId = currentUserId;
+            followToCreate.followingId = user.id;
+            await this.followRepository.save(followToCreate);
+        }
+
+        return { ...user, following: true };
+
     }
 }
