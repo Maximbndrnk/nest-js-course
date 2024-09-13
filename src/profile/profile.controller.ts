@@ -32,18 +32,15 @@ export class ProfileController {
         const profile = await this.profileService.followProfile(currentUserId, username);
         return this.profileService.buildProfileResponse(profile);
     }
-
-    //
-    // @Delete(':slug/favorite')
-    // @UseGuards(AuthGuard)
-    // async deleteArticleFromFavorites(
-    //     @UserDecorator('id') currentUserId: number,
-    //     @Param('slug') slug: string,
-    // ): Promise<ArticleResponseInterface> {
-    //     const a = await this.articleService.deleteArticleFromFavorites(slug,currentUserId);
-    //     return this.articleService.buildArticleResponse(a);
-    // }
-
+    @Delete(':username/follow')
+    @UseGuards(AuthGuard)
+    async unfollowProfile(
+        @UserDecorator('id') currentUserId: number,
+        @Param('username') username: string,
+    ): Promise<ProfileResponseInterface> {
+        const profile = await this.profileService.unfollowProfile(currentUserId, username);
+        return this.profileService.buildProfileResponse(profile);
+    }
 
 }
 

@@ -57,4 +57,21 @@ export class ProfileService {
         return { ...user, following: true };
 
     }
+
+    async unfollowProfile(currentUserId: number, username: string) {
+        const user = await this.userRepository.findOne({
+            where: { username }
+        })
+        if (!user) {
+            throw new HttpException('Profile does not exists', HttpStatus.NOT_FOUND);
+        }
+        if (currentUserId == user.id) {
+            throw new HttpException('You cant unfollow this user', HttpStatus.BAD_REQUEST)
+        }
+        await this.followRepository.delete({
+            followerId: currentUserId, followingId: user.id
+        })
+
+        return { ...user, following: false };
+    }
 }
