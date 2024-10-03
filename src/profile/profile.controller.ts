@@ -4,7 +4,9 @@ import { AuthGuard } from '@app/user/guards/auth.guard';
 import { UserDecorator } from '@app/user/decorators/user.decorator';
 import { ProfileResponseInterface } from '@app/profile/types/profileResponse.interface';
 import { ArticleResponseInterface } from '@app/article/types/article-response.model';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('profiles')
 @Controller('profiles')
 export class ProfileController {
 

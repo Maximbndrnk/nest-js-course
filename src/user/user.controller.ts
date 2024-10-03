@@ -8,7 +8,9 @@ import { UserDecorator } from '@app/user/decorators/user.decorator';
 import { UserEntity } from '@app/user/user.entity';
 import { AuthGuard } from '@app/user/guards/auth.guard';
 import { UpdateUserDto } from '@app/user/dto/updateUser.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('User')
 @Controller()
 export class UserController {
 

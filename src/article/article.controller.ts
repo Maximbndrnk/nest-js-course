@@ -18,7 +18,9 @@ import { UserDecorator } from '@app/user/decorators/user.decorator';
 import { UserEntity } from '@app/user/user.entity';
 import { ArticleResponseInterface, ArticlesResponseInterface } from '@app/article/types/article-response.model';
 import { UpdateArticleDto } from '@app/article/dto/updateArticle.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('articles')
 @Controller('articles')
 export class ArticleController {
 
